@@ -6,8 +6,8 @@ Kenya-first SME business operating system built with Next.js, React, Tailwind CS
 
 1. Install Node.js 20.9 or newer.
 2. Copy `env.example` to `.env.local`.
-3. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in `.env.local`.
-4. In the Supabase SQL Editor, run `supabase/migrations/001_initial.sql`.
+3. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (or the legacy `NEXT_PUBLIC_SUPABASE_ANON_KEY`) in `.env.local`.
+4. In the Supabase SQL Editor, run `supabase/migrations/001_initial.sql`, then run `supabase/migrations/002_workspace_onboarding.sql`.
 5. Install dependencies and run the development server:
 
    ```bash
@@ -24,7 +24,7 @@ Kenya-first SME business operating system built with Next.js, React, Tailwind CS
 
 ## Deploy to Vercel
 
-Import the GitHub repository into Vercel. In **Project Settings → Environment Variables**, set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` for the environments you deploy, then redeploy.
+Import the GitHub repository into Vercel. In **Project Settings → Environment Variables**, set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (or `NEXT_PUBLIC_SUPABASE_ANON_KEY`) for the environments you deploy, then redeploy. Ensure both SQL migrations have been run in the same Supabase project. In Supabase Authentication → URL Configuration, set the Site URL to your Vercel domain and add `https://YOUR-VERCEL-DOMAIN/auth/callback` to Redirect URLs.
 
 Never commit `.env.local`, passwords, Supabase service-role keys, or other secrets to GitHub. The `.gitignore` excludes local environment files and build output.
 

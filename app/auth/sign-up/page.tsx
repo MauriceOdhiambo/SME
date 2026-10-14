@@ -12,8 +12,8 @@ export default function SignUp() {
 
   async function submit(e: FormEvent) {
     e.preventDefault(); setError(''); setMsg(''); setBusy(true);
-    const supabase = createClient();
     try {
+      const supabase = createClient();
       const { data, error: signUpError } = await supabase.auth.signUp({
         email: form.email.trim(), password: form.password,
         options: { data: { full_name: form.name.trim(), business_name: form.business.trim() } },
@@ -21,13 +21,14 @@ export default function SignUp() {
       if (signUpError) throw signUpError;
       if (data.session) {
         const { error: workspaceError } = await supabase.rpc('ensure_my_workspace');
-        if (workspaceError) throw new Error(`Your account was created, but workspace setup failed. Apply the latest Supabase migration and try signing in again. Details: ${workspaceError.message}`);
+        if (workspaceError) throw new Error(`Your account was created, but workspace setup failed. In Supabase SQL Editor, run supabase/migrations/002_workspace_onboarding.sql. Details: ${workspaceError.message}`);
         window.location.assign('/dashboard');
         return;
       }
-      setMsg('Your account has been created. Check your email to confirm it, then sign in. Your workspace will be created automatically after sign-in.');
+      setMsg('If this email is eligible for registration, an account has been created. Check your inbox (and spam folder) for the confirmation link, then return here to sign in.');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unable to create your account. Please try again.');
+      const message = err instanceof Error ? err.message : 'Unable to create your account. Please try again.';
+      setError(message.includes('User already registered') ? 'An account with this email already exists. Please sign in instead or use password reset.' : message);
     } finally { setBusy(false); }
   }
 
