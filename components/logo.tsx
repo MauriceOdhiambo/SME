@@ -1,0 +1,2 @@
+import {Activity} from 'lucide-react'
+export function Logo({light=false}:{light?:boolean}){return <div className="flex items-center gap-2"><span className={`grid h-9 w-9 place-items-center rounded-xl ${light?'bg-white/15 text-white':'bg-teal-700 text-white'}`}><Activity size={19}/></span><div><div className={`font-black tracking-tight ${light?'text-white':'text-slate-950'}`}>Biashara<span className="text-teal-600">OS</span></div><div className={`text-[9px] font-bold uppercase tracking-[.2em] ${light?'text-white/60':'text-slate-400'}`}>SME Operating System</div></div></div>}
