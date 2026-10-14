@@ -1,2 +1,35 @@
-'use client';import {FormEvent,useState} from 'react';import Link from 'next/link';import {Logo} from '@/components/logo';import {createClient} from '@/lib/supabase/client';
-export default function SignUp(){const [form,setForm]=useState({name:'',business:'',email:'',password:''});const [msg,setMsg]=useState('');const [error,setError]=useState('');async function submit(e:FormEvent){e.preventDefault();setError('');setMsg('');const {data,error}=await createClient().auth.signUp({email:form.email,password:form.password,options:{data:{full_name:form.name,business_name:form.business}}});if(error)setError(error.message);else setMsg(data.session?'Workspace created.':'Check your email to confirm your account, then sign in.')}return <main className="min-h-screen bg-slate-50 px-5 py-10"><div className="mx-auto max-w-md"><Logo/><div className="card mt-10 p-7"><h1 className="text-2xl font-black">Create your workspace</h1><p className="mt-2 text-sm text-slate-500">Set up the business foundation now. Payments and external integrations can be connected later.</p><form onSubmit={submit} className="mt-7 space-y-4">{[['name','Your name','text'],['business','Business name','text'],['email','Work email','email'],['password','Password (8+ characters)','password']].map(([k,p,t])=><label key={k} className="block text-sm font-bold">{p}<input required minLength={k==='password'?8:1} type={t} value={form[k as keyof typeof form]} onChange={e=>setForm({...form,[k]:e.target.value})} className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-teal-600"/></label>)}{error&&<div className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</div>}{msg&&<div className="rounded-xl bg-teal-50 p-3 text-sm text-teal-800">{msg}</div>}<button className="btn btn-primary w-full">Create workspace</button></form><p className="mt-6 text-center text-sm text-slate-500">Already have access? <Link className="font-bold text-teal-700" href="/auth/login">Sign in</Link></p></div></div></main>}
+'use client';
+import { FormEvent, useState } from 'react';
+import Link from 'next/link';
+import { Logo } from '@/components/logo';
+import { createClient } from '@/lib/supabase/client';
+
+export default function SignUp() {
+  const [form, setForm] = useState({ name: '', business: '', email: '', password: '' });
+  const [msg, setMsg] = useState('');
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  async function submit(e: FormEvent) {
+    e.preventDefault(); setError(''); setMsg(''); setBusy(true);
+    const supabase = createClient();
+    try {
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: form.email.trim(), password: form.password,
+        options: { data: { full_name: form.name.trim(), business_name: form.business.trim() } },
+      });
+      if (signUpError) throw signUpError;
+      if (data.session) {
+        const { error: workspaceError } = await supabase.rpc('ensure_my_workspace');
+        if (workspaceError) throw new Error(`Your account was created, but workspace setup failed. Apply the latest Supabase migration and try signing in again. Details: ${workspaceError.message}`);
+        window.location.assign('/dashboard');
+        return;
+      }
+      setMsg('Your account has been created. Check your email to confirm it, then sign in. Your workspace will be created automatically after sign-in.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to create your account. Please try again.');
+    } finally { setBusy(false); }
+  }
+
+  return <main className="min-h-screen bg-slate-50 px-5 py-10"><div className="mx-auto max-w-md"><Logo/><div className="card mt-10 p-7"><h1 className="text-2xl font-black">Create your workspace</h1><p className="mt-2 text-sm text-slate-500">Create your account and business workspace to get started.</p><form onSubmit={submit} className="mt-7 space-y-4">{([['name','Your name','text'],['business','Business name','text'],['email','Work email','email'],['password','Password (8+ characters)','password']] as const).map(([key,label,type])=><label key={key} className="block text-sm font-bold">{label}<input required minLength={key==='password'?8:1} type={type} autoComplete={key==='password'?'new-password':key==='email'?'email':'name'} value={form[key]} onChange={e=>setForm({...form,[key]:e.target.value})} className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-teal-600"/></label>)}{error&&<div role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</div>}{msg&&<div role="status" className="rounded-xl bg-teal-50 p-3 text-sm text-teal-800">{msg}</div>}<button disabled={busy} className="btn btn-primary w-full disabled:opacity-60">{busy?'Creating account…':'Create workspace'}</button></form><p className="mt-6 text-center text-sm text-slate-500">Already have access? <Link className="font-bold text-teal-700" href="/auth/login">Sign in</Link></p></div></div></main>;
+}

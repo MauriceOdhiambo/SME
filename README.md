@@ -1,4 +1,4 @@
-# Biashara0s
+# BiasharaOS
 
 Kenya-first SME business operating system built with Next.js, React, Tailwind CSS and Supabase.
 
