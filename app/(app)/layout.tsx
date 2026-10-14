@@ -10,5 +10,10 @@ export default async function Layout({ children }: { children: React.ReactNode }
     redirect('/auth/login');
   }
 
-  return <AppShell>{children}</AppShell>;
+  const [{ data: entitlements }, { data: isPlatformOperator }] = await Promise.all([
+    supabase.rpc('get_my_entitlements'),
+    supabase.rpc('is_platform_operator'),
+  ]);
+
+  return <AppShell entitlements={entitlements ?? undefined} isPlatformOperator={Boolean(isPlatformOperator)}>{children}</AppShell>;
 }
